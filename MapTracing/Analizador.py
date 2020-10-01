@@ -1,5 +1,5 @@
 import re
-class Ruta:
+class Analizador:
 
     def __init__(self, direccion):
         self.direccion = direccion
@@ -31,9 +31,27 @@ class Ruta:
     # END
 
 # VARIABLES GLOBALES
+nombre = ''
+peso = ''
+inicio = ''
+fin = ''
+color = ''
 NoTabla = 0
 NoError = 1
+NoTablaTK = 0
+NoTK = 1
 Error = False
+ETKruta = False
+ETKnombre = False
+ETKpeso = False
+ETKinicio = False
+ETKfin = False
+ETKestacion = False
+ETKestado = False
+ETKcolor = False
+ETKid = False
+ETKnum = False
+ETKidcolor = False
 especiales = ["@", "#", "_"]
 S = 0 # ESTADOS DE AUTOMATA
 
@@ -41,21 +59,33 @@ S = 0 # ESTADOS DE AUTOMATA
 def GraficarErrores(fila, columna, simbolo, descripcion, error):
     global NoError
     global NoTabla
-    print('Fila: ' + str(fila) + ' columna: ' + str(columna) + ' simbolo: ' + simbolo + ' error:' + str(error))
+    # print('Fila: ' + str(fila) + ' columna: ' + str(columna) + ' simbolo: ' + simbolo + ' error:' + str(error))
     if NoTabla == 0:
-        file = open("TablaErrores.csv", "w")
-        file.write('No.,Fila,Colunma,Caracter,Descripcion\n')
+        file = open("TablaErrores.csv", "w", encoding="cp437", errors='ignore')
+        file.write('No.,Fila,Columna,Caracter,Descripcion\n')
         file.close()
         NoTabla = 1
     if NoTabla != 0:
-        file = open("TablaErrores.csv", "a")
+        file = open("TablaErrores.csv", "a", encoding="cp437", errors='ignore')
         file.write(str(NoError) + ',' + str(fila) + ',' + str(columna) + ',' +simbolo+ ',' + descripcion + '\n')
         file.close()
     NoError = NoError + 1
     # END
 
 def GraficarToken(lexema, fila, columna, token):
-    print('Lexema: ' + lexema + ' fila: ' + fila + ' columna: ' + columna + ' Token: ' + token)
+    global NoTK
+    global NoTablaTK
+    # print('Lexema: ' + lexema + ' fila: ' + str(fila) + ' columna: ' + str(columna) + ' Token: ' + token)
+    if NoTablaTK == 0:
+        file = open("TablaTokens.csv", "w", encoding="cp437", errors='ignore')
+        file.write('No.,Lexema,fila,Columna,Token\n')
+        file.close()
+        NoTablaTK = 1
+    if NoTablaTK != 0:
+        file = open("TablaTokens.csv", "a", encoding="cp437", errors='ignore')
+        file.write(str(NoTK) + ',' + lexema + ',' + str(fila) + ',' + str(columna) + ',' + token + '\n')
+        file.close()
+    NoTK = NoTK + 1
     # END
 
 def AnalisisLexico(lineas):
@@ -72,16 +102,35 @@ def AnalisisLexico(lineas):
         AutomataGeneral1(i, contador)
         contador = contador + 1
     print('Estado: ' + str(S))
+    print('Proceso teminado! oprima cualquier letra para continuar.')
     # END
 
 def AutomataGeneral1(linea, fila):
     global S
     global Error
+    global ETKruta
+    global ETKnombre
+    global ETKpeso
+    global ETKinicio
+    global ETKfin
+    global ETKestacion
+    global ETKestado
+    global ETKcolor
+    global ETKid
+    global ETKnum
+    global ETKidcolor
     columna = 1
+    global nombre
+    global peso
+    global inicio
+    global fin
+    global color
+
     for i in linea:
         # ***********************ERRORES**************************
         # ERROR -1
         if S == -1:
+            ETKruta = True
             if i == 'r':
                 S = 2
             elif i == 'u':
@@ -90,15 +139,21 @@ def AutomataGeneral1(linea, fila):
                 S = 4
             elif i == 'a':
                 S = 5
+                ETKruta = False
             elif i == '>':
                 S = 6
+                ETKruta = False
+                GraficarToken(i,fila,columna,'CierraTK')
             elif i == '<':
                 S = 7
+                ETKruta = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "ruta"', S)
         # ERROR -2
         elif S == -2:
+            ETKnombre = True
             if i == 'n':
                 S = 8
             elif i == 'o':
@@ -111,15 +166,21 @@ def AutomataGeneral1(linea, fila):
                 S = 12
             elif i == 'e':
                 S = 13
+                ETKnombre = False
             elif i == '>':
                 S = 14
+                ETKnombre = False
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == '<':
                 S = 16
+                ETKnombre = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "nombre"', S)
         # ERROR -3
         elif S == -3:
+            ETKpeso = True
             if i == 'p':
                 S = 26
             elif i == 'e':
@@ -128,15 +189,21 @@ def AutomataGeneral1(linea, fila):
                 S = 28
             elif i == 'o':
                 S = 29
+                ETKpeso = False
             elif i == '>':
                 S = 30
+                ETKpeso = False
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == '<':
                 S = 33
+                ETKpeso = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "peso"', S)
         # ERROR -4
         elif S == -4:
+            ETKinicio = True
             if i == 'i':
                 S = 41
             elif i == 'n':
@@ -149,32 +216,45 @@ def AutomataGeneral1(linea, fila):
                 S = 45
             elif i == 'o':
                 S = 46
+                ETKinicio = False
             elif i == '>':
                 S = 47
+                ETKinicio = False
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == '<':
                 S = 49
+                ETKinicio = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "inicio"', S)
         # ERROR -5
         elif S == -5:
+            ETKfin = True
             if i == 'f':
                 S = 59
             elif i == 'i':
                 S = 60
             elif i == 'n':
                 S = 61
+                ETKfin = False
             elif i == '>':
                 S = 62
+                ETKfin = False
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == '<':
                 S = 64
+                ETKfin = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "fin"', S)
         # ERROR -6
         elif S == -6:
+            ETKnombre = True
             if i == '/':
                 S = 17
+                GraficarToken(i, fila, columna, 'BarraTK')
             elif i == 'n':
                 S = 18
             elif i == 'o':
@@ -187,17 +267,24 @@ def AutomataGeneral1(linea, fila):
                 S = 22
             elif i == 'e':
                 S = 23
+                ETKnombre = False
             elif i == '>':
                 S = 24
+                ETKnombre = False
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == '<':
                 S = 7
+                ETKnombre = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "nombre"', S)
         # ERROR -7
         elif S == -7:
+            ETKpeso = True
             if i == '/':
                 S = 37
+                GraficarToken(i, fila, columna, 'BarraTK')
             elif i == 'p':
                 S = 38
             elif i == 'e':
@@ -206,17 +293,24 @@ def AutomataGeneral1(linea, fila):
                 S = 40
             elif i == 'o':
                 S = 41
+                ETKpeso = False
             elif i == '>':
                 S = 42
+                ETKpeso = False
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == '<':
                 S = 7
+                ETKpeso = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "peso"', S)
         # ERROR -8
         elif S == -8:
+            ETKinicio = True
             if i == '/':
                 S = 50
+                GraficarToken(i, fila, columna, 'BarraTK')
             elif i == 'i':
                 S = 51
             elif i == 'n':
@@ -229,34 +323,48 @@ def AutomataGeneral1(linea, fila):
                 S = 55
             elif i == 'o':
                 S = 56
+                ETKinicio = False
             elif i == '>':
+                GraficarToken(i, fila, columna, 'CierreTK')
                 S = 57
+                ETKinicio = False
             elif i == '<':
                 S = 7
+                ETKinicio = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "inicio"', S)
         # ERROR -9
         elif S == -9:
+            ETKfin = True
             if i == '/':
                 S = 65
+                GraficarToken(i, fila, columna, 'BarraTK')
             elif i == 'f':
                 S = 66
             elif i == 'i':
                 S = 67
             elif i == 'n':
                 S = 68
+                ETKfin = False
             elif i == '>':
                 S = 69
+                ETKfin = False
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == '<':
                 S = 7
+                ETKfin = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "fin"', S)
         # ERROR -10
         elif S == -10:
+            ETKruta = True
             if i == '/':
                 S = 71
+                GraficarToken(i, fila, columna, 'BarraTK')
             elif i == 'r':
                 S = 72
             elif i == 'u':
@@ -265,15 +373,21 @@ def AutomataGeneral1(linea, fila):
                 S = 74
             elif i == 'a':
                 S = 75
+                ETKruta = False
             elif i == '>':
                 S = 0
+                ETKruta = False
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == '<':
                 S = 1
+                ETKruta = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "ruta"', S)
         # ERROR -11
         elif S == -11:
+            ETKestacion = True
             if i == 'e':
                 S = 77
             elif i == 's':
@@ -290,15 +404,21 @@ def AutomataGeneral1(linea, fila):
                 S = 83
             elif i == 'n':
                 S = 84
+                ETKestacion = False
             elif i == '>':
                 S = 85
+                ETKestacion = False
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == '<':
                 S = 86
+                ETKestacion = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "estacion"', S)
         # ERROR -12
         elif S == -12:
+            ETKnombre = True
             if i == 'n':
                 S = 87
             elif i == 'o':
@@ -311,15 +431,21 @@ def AutomataGeneral1(linea, fila):
                 S = 91
             elif i == 'e':
                 S = 92
+                ETKnombre = False
             elif i == '>':
                 S = 93
+                ETKnombre = False
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == '<':
                 S = 95
+                ETKnombre = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "nombre"', S)
         # ERROR -13
         elif S == -13:
+            ETKestado = True
             if i == 'e':
                 S = 104
             elif i == 's':
@@ -332,15 +458,21 @@ def AutomataGeneral1(linea, fila):
                 S = 108
             elif i == 'o':
                 S = 109
+                ETKestado = False
             elif i == '>':
+                GraficarToken(i, fila, columna, 'CierreTK')
                 S = 110
+                ETKestado = False
             elif i == '<':
                 S = 121
+                ETKestado = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "estado"', S)
         # ERROR -14
         elif S == -14:
+            ETKcolor = True
             if i == 'c':
                 S = 137
             elif i == 'o':
@@ -351,17 +483,24 @@ def AutomataGeneral1(linea, fila):
                 S = 140
             elif i == 'r':
                 S = 141
+                ETKcolor = False
             elif i == '>':
                 S = 142
+                ETKcolor = False
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == '<':
                 S = 144
+                ETKcolor = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "color"', S)
         # ERROR -15
         elif S == -15:
+            ETKnombre = True
             if i == '/':
                 S = 97
+                GraficarToken(i, fila, columna, 'BarraTK')
             elif i == 'n':
                 S = 98
             elif i == 'o':
@@ -374,17 +513,24 @@ def AutomataGeneral1(linea, fila):
                 S = 102
             elif i == 'e':
                 S = 103
+                ETKnombre = False
             elif i == '>':
                 S = 104
+                ETKnombre = False
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == '<':
                 S = 86
+                ETKnombre = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "nombre"', S)
         # ERROR -16
         elif S == -16:
+            ETKestado = True
             if i == '/':
                 S = 122
+                GraficarToken(i, fila, columna, 'BarraTK')
             elif i == 'e':
                 S = 123
             elif i == 's':
@@ -397,17 +543,24 @@ def AutomataGeneral1(linea, fila):
                 S = 127
             elif i == 'o':
                 S = 128
+                ETKestado = False
             elif i == '>':
                 S = 129
+                ETKestado = False
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == '<':
                 S = 86
+                ETKestado = False
+                GraficarToken(i, fila, columna, 'CierreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "estado"', S)
         # ERROR -17
         elif S == -17:
+            ETKcolor = True
             if i == '/':
                 S = 145
+                GraficarToken(i, fila, columna, 'BarraTK')
             elif i == 'c':
                 S = 146
             elif i == 'o':
@@ -418,17 +571,24 @@ def AutomataGeneral1(linea, fila):
                 S = 149
             elif i == 'r':
                 S = 150
+                ETKcolor = False
             elif i == '>':
                 S = 100
+                ETKcolor = False
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == '<':
                 S = 86
+                ETKcolor = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "color"', S)
         # ERROR -18
         elif S == -18:
+            ETKestacion = True
             if i == '/':
                 S = 151
+                GraficarToken(i, fila, columna, 'BarraTK')
             elif i == 'e':
                 S = 152
             elif i == 's':
@@ -445,15 +605,21 @@ def AutomataGeneral1(linea, fila):
                 S = 158
             elif i == 'n':
                 S = 159
+                ETKestacion = False
             elif i == '>':
+                GraficarToken(i, fila, columna, 'CierreTK')
                 S = 0
+                ETKestacion = False
             elif i == '<':
+                GraficarToken(i, fila, columna, 'AbreTK')
                 S = 1
+                ETKestacion = False
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "estacion"', S)
         # ERROR -19
         elif S == -19:
+            ETKnombre = True
             if i == 'n':
                 S = 160
             elif i == 'o':
@@ -466,17 +632,24 @@ def AutomataGeneral1(linea, fila):
                 S = 164
             elif i == 'e':
                 S = 165
+                ETKnombre = False
             elif i == '>':
+                GraficarToken(i, fila, columna, 'CierreTK')
                 S = 166
+                ETKnombre = False
             elif i == '<':
                 S = 168
+                ETKnombre = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "nombre"', S)
         # ERROR -20
         elif S == -20:
+            ETKnombre = True
             if i == '/':
                 S = 168
+                GraficarToken(i, fila, columna, 'BarraTK')
             elif i == 'n':
                 S = 169
             elif i == 'o':
@@ -489,15 +662,21 @@ def AutomataGeneral1(linea, fila):
                 S = 173
             elif i == 'e':
                 S = 174
+                ETKnombre = False
             elif i == '>':
                 S = 0
+                ETKnombre = False
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == '<':
                 S = 1
+                ETKnombre = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "nombre"', S)
         # ERROR -21
         elif S == -21:
+            ETKidcolor = True
             if i == 'd':
                 S = 111
             elif i == 'i':
@@ -518,13 +697,17 @@ def AutomataGeneral1(linea, fila):
                 S = 119
             elif i == 'e':
                 S = 120
+                ETKid = False
             elif i == '<':
+                ETKid = False
+                GraficarToken(i, fila, columna, 'AbreTK')
                 S = 121
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Caracter invalido', S)
         # ERROR -22
         elif S == -22:
+            ETKidcolor = True
             if i == 'c':
                 S = 130
             elif i == 'e':
@@ -537,6 +720,8 @@ def AutomataGeneral1(linea, fila):
                 S = 135
             elif i == '<':
                 S = 121
+                ETKid = False
+                GraficarToken(i, fila, columna, 'AbreTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Caracter invalido', S)
@@ -545,6 +730,12 @@ def AutomataGeneral1(linea, fila):
         elif S == 0:
             if i == '<':
                 S = 1
+                nombre = ''
+                peso = ''
+                inicio = ''
+                fin = ''
+                color = ''
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 0
             else:
@@ -581,6 +772,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 4:
             if i == 'a':
                 S = 5
+                if ETKruta == False:
+                    GraficarToken('ruta', fila, columna, 'RutaTK')
+                else:
+                    ETKruta = False
             else:
                 S = -1
                 Error = True
@@ -589,6 +784,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 5:
             if i == '>':
                 S = 6
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 5
             else:
@@ -599,6 +795,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 6:
             if i == '<':
                 S = 7
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 6
             else:
@@ -616,6 +813,7 @@ def AutomataGeneral1(linea, fila):
                 S = 59
             elif i == '/':
                 S = 71
+                GraficarToken(i, fila, columna, 'BarraTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Caracter invalido', S)
@@ -655,6 +853,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 12:
             if i == 'e':
                 S = 13
+                if ETKnombre == False:
+                    GraficarToken('nombre', fila, columna, 'NombreTK')
+                else:
+                    ETKnombre = False
             else:
                 S = -2
                 Error = True
@@ -663,6 +865,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 13:
             if i == '>':
                 S = 14
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 13
             else:
@@ -672,6 +875,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 14:
             if i.isalpha():
                 S = 15
+                nombre = nombre + i
             elif i == ' ':
                 S = 14
             else:
@@ -681,8 +885,11 @@ def AutomataGeneral1(linea, fila):
         elif S == 15:
             if i.isalnum() or i in especiales:
                 S = 15
+                nombre = nombre + i
             elif i == '<':
                 S = 16
+                GraficarToken(nombre, fila, columna, 'ID')
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i ==' ':
                 S = 15
             else:
@@ -692,6 +899,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 16:
             if i == '/':
                 S = 17
+                GraficarToken(i, fila, columna, 'BarraTK')
             else:
                 S = -6
                 Error = True
@@ -740,6 +948,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 22:
             if i == 'e':
                 S = 23
+                if ETKnombre == False:
+                    GraficarToken('nombre', fila, columna, 'NombreTK')
+                else:
+                    ETKruta = False
             else:
                 S = -6
                 Error = True
@@ -748,6 +960,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 23:
             if i == '>':
                 S = 24
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i ==' ':
                 S = 23
             else:
@@ -757,6 +970,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 24:
             if i == '<':
                 S = 7
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 24
             else:
@@ -782,6 +996,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 28:
             if i == 'o':
                 S = 29
+                if ETKpeso == False:
+                    GraficarToken('peso', fila, columna, 'PesoTK')
+                else:
+                    ETKpeso = False
             else:
                 S = -3
                 Error = True
@@ -790,6 +1008,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 29:
             if i == '>':
                 S = 30
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 29
             else:
@@ -799,6 +1018,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 30:
             if i.isdigit():
                 S = 31
+                peso = peso + i
             elif i == ' ':
                 S = 30
             else:
@@ -808,10 +1028,13 @@ def AutomataGeneral1(linea, fila):
         elif S == 31:
             if i.isdigit():
                 S = 31
+                peso = peso + i
             elif i == '.':
                 S = 32
+                peso = peso + i
             elif i == "<":
                 S = 33
+                GraficarToken(peso, fila, columna, 'NUM')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Caracter invalido', S)
@@ -819,8 +1042,11 @@ def AutomataGeneral1(linea, fila):
         elif S == 32:
             if i.isdigit():
                 S = 32
+                peso = peso + i
             elif i == '<':
                 S = 33
+                GraficarToken(peso, fila, columna, 'NUM')
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 32
             else:
@@ -830,6 +1056,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 33:
             if i == '/':
                 S = 34
+                GraficarToken(i, fila, columna, 'BarraTK')
             else:
                 S = -7
                 Error = True
@@ -862,6 +1089,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 37:
             if i == 'o':
                 S = 38
+                if ETKpeso == False:
+                    GraficarToken('peso', fila, columna, 'PesoTK')
+                else:
+                    ETKpeso = False
             else:
                 S = -7
                 Error = True
@@ -870,6 +1101,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 38:
             if i == '>':
                 S = 39
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 38
             else:
@@ -879,6 +1111,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 39:
             if i == '<':
                 S = 7
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 39
             else:
@@ -920,6 +1153,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 45:
             if i == 'o':
                 S = 46
+                if ETKinicio == False:
+                    GraficarToken('inicio', fila, columna, 'InicioTK')
+                else:
+                    ETKinicio = False
             else:
                 S = -4
                 Error = True
@@ -928,6 +1165,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 46:
             if i == '>':
                 S = 47
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 46
             else:
@@ -937,6 +1175,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 47:
             if i.isalpha():
                 S = 48
+                inicio = inicio + i
             elif i == ' ':
                 S = 47
             else:
@@ -946,8 +1185,11 @@ def AutomataGeneral1(linea, fila):
         elif S == 48:
             if i.isalnum() or i in especiales:
                 S = 48
+                inicio = inicio + i
             elif i == '<':
                 S = 49
+                GraficarToken(inicio, fila, columna, 'ID')
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 48
             else:
@@ -957,6 +1199,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 49:
             if i == '/':
                 S = 50
+                GraficarToken(i, fila, columna, 'BarraTK')
             else:
                 S = -8
                 Error = True
@@ -1005,6 +1248,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 55:
             if i == 'o':
                 S = 56
+                if ETKinicio == False:
+                    GraficarToken('inicio', fila, columna, 'InicioTK')
+                else:
+                    ETKinicio = False
             else:
                 S = -8
                 Error = True
@@ -1013,6 +1260,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 56:
             if i == '>':
                 S = 57
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 56
             else:
@@ -1022,6 +1270,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 57:
             if i == '<':
                 S = 7
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 57
             else:
@@ -1039,6 +1288,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 60:
             if i == 'n':
                 S = 61
+                if ETKfin == False:
+                    GraficarToken('fin', fila, columna, 'FinTK')
+                else:
+                    ETKfin = False
             else:
                 S = -5
                 Error = True
@@ -1047,6 +1300,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 61:
             if i == '>':
                 S = 62
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 61
             else:
@@ -1056,6 +1310,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 62:
             if i.isalpha():
                 S = 63
+                fin = fin + i
             elif i == ' ':
                 S = 62
             else:
@@ -1065,8 +1320,11 @@ def AutomataGeneral1(linea, fila):
         elif S == 63:
             if i.isalnum() or i in especiales:
                 S = 63
+                fin = fin + i
             elif i == '<':
                 S = 64
+                GraficarToken(fin, fila, columna, 'ID')
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 63
             else:
@@ -1076,6 +1334,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 64:
             if i == '/':
                 S = 65
+                GraficarToken(i, fila, columna, 'BarraTK')
             else:
                 S = -9
                 Error = True
@@ -1100,6 +1359,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 67:
             if i == 'n':
                 S = 68
+                if ETKfin == False:
+                    GraficarToken('fin', fila, columna, 'FinTK')
+                else:
+                    ETKfin = False
             else:
                 S = -9
                 Error = True
@@ -1108,6 +1371,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 68:
             if i == '>':
                 S = 69
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 68
             else:
@@ -1117,6 +1381,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 69:
             if i == '<':
                 S = 7
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 69
             else:
@@ -1150,6 +1415,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 74:
             if i == 'a':
                 S = 75
+                if ETKruta == False:
+                    GraficarToken('ruta', fila, columna, 'rutaTK')
+                else:
+                    ETKruta = False
             else:
                 S = -10
                 Error = True
@@ -1158,6 +1427,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 75:
             if i == '>':
                 S = 0
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 75
             else:
@@ -1216,6 +1486,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 83:
             if i == 'n':
                 S = 84
+                if ETKestacion == False:
+                    GraficarToken('estacion', fila, columna, 'EstacionTK')
+                else:
+                    ETKestacion = False
             else:
                 S = -11
                 Error = True
@@ -1224,6 +1498,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 84:
             if i == '>':
                 S = 85
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 84
             else:
@@ -1233,6 +1508,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 85:
             if i == '<':
                 S = 86
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 85
             else:
@@ -1248,6 +1524,7 @@ def AutomataGeneral1(linea, fila):
                 S = 137
             elif i == '/':
                 S = 151
+                GraficarToken(i, fila, columna, 'BarraTK')
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Caracter invalido', S)
@@ -1287,6 +1564,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 91:
             if i == 'e':
                 S = 92
+                if ETKnombre == False:
+                    GraficarToken('nombre', fila, columna, 'NombreTK')
+                else:
+                    ETKnombre = False
             else:
                 S = -12
                 Error = True
@@ -1295,6 +1576,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 92:
             if i == '>':
                 S = 93
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 92
             else:
@@ -1304,6 +1586,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 93:
             if i.isalpha():
                 S = 94
+                nombre = nombre + i
             elif i == ' ':
                 S = 93
             else:
@@ -1312,9 +1595,12 @@ def AutomataGeneral1(linea, fila):
         # ESTADO 94 / EXPRESION REGULAR
         elif S == 94:
             if i.isalnum() or i in especiales:
+                nombre = nombre + i
                 S = 94
             elif i == '<':
                 S = 95
+                GraficarToken(nombre, fila, columna, 'ID')
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 94
             else:
@@ -1324,6 +1610,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 95:
             if i == '/':
                 S = 96
+                GraficarToken(i, fila, columna, 'BarraTK')
             else:
                 S = -15
                 Error = True
@@ -1372,6 +1659,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 101:
             if i == 'e':
                 S = 102
+                if ETKnombre == False:
+                    GraficarToken('nombre', fila, columna, 'NombreTK')
+                else:
+                    ETKnombre = False
             else:
                 S = -15
                 Error = True
@@ -1380,6 +1671,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 102:
             if i == '>':
                 S = 103
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 102
             else:
@@ -1389,6 +1681,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 103:
             if i == '<':
                 S = 86
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 103
             else:
@@ -1430,6 +1723,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 108:
             if i == 'o':
                 S = 109
+                if ETKestado == False:
+                    GraficarToken('estado', fila, columna, 'EstadoTK')
+                else:
+                    ETKestado = False
             else:
                 S = -13
                 Error = True
@@ -1438,6 +1735,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 109:
             if i == '>':
                 S = 110
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 109
             else:
@@ -1529,6 +1827,8 @@ def AutomataGeneral1(linea, fila):
         elif S == 120:
             if i == '<':
                 S = 121
+                GraficarToken('disponible', fila, columna, 'ID')
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 120
             else:
@@ -1538,6 +1838,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 121:
             if i == '/':
                 S = 122
+                GraficarToken(i, fila, columna, 'BarraTK')
             else:
                 S = -16
                 Error = True
@@ -1586,6 +1887,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 127:
             if i == 'o':
                 S = 128
+                if ETKestado == False:
+                    GraficarToken('estado', fila, columna, 'EstadoTK')
+                else:
+                    ETKestado = False
             else:
                 S = -16
                 Error = True
@@ -1594,6 +1899,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 128:
             if i == '>':
                 S = 129
+                GraficarToken('estado', fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 128
             else:
@@ -1603,6 +1909,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 129:
             if i == '<':
                 S = 86
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 129
             else:
@@ -1660,6 +1967,8 @@ def AutomataGeneral1(linea, fila):
         elif S == 136:
             if i == '<':
                 S = 121
+                GraficarToken('cerrada', fila, columna, 'ID')
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 136
             else:
@@ -1693,6 +2002,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 140:
             if i == 'r':
                 S = 141
+                if ETKcolor == False:
+                    GraficarToken('color', fila, columna, 'ColorTK')
+                else:
+                    ETKcolor = False
             else:
                 S = -14
                 Error = True
@@ -1701,6 +2014,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 141:
             if i == '>':
                 S = 142
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 141
             else:
@@ -1710,6 +2024,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 142:
             if i == '#':
                 S = 143
+                color = color + i
             elif i == ' ':
                 S = 142
             else:
@@ -1719,8 +2034,11 @@ def AutomataGeneral1(linea, fila):
         elif S == 143:
             if i.isalnum():
                 S = 143
+                color = color + i
             elif i == '<':
                 S = 144
+                GraficarToken(color, fila, columna, 'ID')
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 143
             else:
@@ -1730,6 +2048,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 144:
             if i == '/':
                 S = 145
+                GraficarToken(i, fila, columna, 'BarraTK')
             else:
                 S = -17
                 Error = True
@@ -1770,6 +2089,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 149:
             if i == 'r':
                 S = 150
+                if ETKcolor == False:
+                    GraficarToken('color', fila, columna, 'ColorTK')
+                else:
+                    ETKcolor = False
             else:
                 Error = True
                 GraficarErrores(fila, columna, i, 'Error en etiqueta "color"', S)
@@ -1777,6 +2100,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 150:
             if i == '>':
                 S = 1000
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 150
             else:
@@ -1786,6 +2110,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 1000:
             if i == '<':
                 S = 86
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 1000
             else:
@@ -1851,6 +2176,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 158:
             if i == 'n':
                 S = 159
+                if ETKestacion == False:
+                    GraficarToken('estacion', fila, columna, 'EstacionTK')
+                else:
+                    ETKestacion = False
             else:
                 S = -18
                 Error = True
@@ -1859,6 +2188,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 159:
             if i == '>':
                 S = 0
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 159
             else:
@@ -1900,6 +2230,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 164:
             if i == 'e':
                 S = 165
+                if ETKnombre == False:
+                    GraficarToken('nombre', fila, columna, 'NombreTK')
+                else:
+                    ETKnombre = False
             else:
                 S = -19
                 Error = True
@@ -1908,6 +2242,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 165:
             if i == '>':
                 S = 166
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 165
             else:
@@ -1917,6 +2252,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 166:
             if i.isalpha():
                 S = 167
+                nombre = nombre + i
             elif i == ' ':
                 S = 166
             else:
@@ -1926,8 +2262,11 @@ def AutomataGeneral1(linea, fila):
         elif S == 167:
             if i.isalnum() or i in especiales:
                 S = 167
+                nombre = nombre + i
             elif i == '<':
                 S = 168
+                GraficarToken(nombre, fila, columna, 'ID')
+                GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 167
             else:
@@ -1937,6 +2276,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 168:
             if i == '/':
                 S = 169
+                GraficarToken(i, fila, columna, 'BarraTK')
             else:
                 S = -20
                 Error = True
@@ -1985,6 +2325,10 @@ def AutomataGeneral1(linea, fila):
         elif S == 174:
             if i == 'e':
                 S = 175
+                if ETKnombre == False:
+                    GraficarToken('nombre', fila, columna, 'NombreTK')
+                else:
+                    ETKnombre = False
             else:
                 S = -20
                 Error = True
@@ -1993,6 +2337,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 175:
             if i == '>':
                 S = 0
+                GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 175
             else:

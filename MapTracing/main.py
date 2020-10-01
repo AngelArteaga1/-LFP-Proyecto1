@@ -1,7 +1,7 @@
 # This is my own Python script
 # Imports
 import sys
-from Ruta import Ruta
+from Analizador import Analizador
 
 
 '''******************************MENU**********************************'''
@@ -42,8 +42,8 @@ class Menu:
 
     def CargarArchivo(self):
         print("Porfavor intruduzca la ubicación del archivo:")
-        ruta = Ruta(input())
-        ruta.LeerArchivo()
+        analizador = Analizador(input())
+        analizador.LeerArchivo()
         input()
 
     def GraficarRuta(self):
