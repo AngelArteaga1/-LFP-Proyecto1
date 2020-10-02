@@ -1,9 +1,6 @@
 No.,Fila,Columna,Caracter,Descripcion
-1,14,7,I,Error en etiqueta "estacion"
-2,20,7,I,Error en etiqueta "estacion"
-3,27,7,I,Error en etiqueta "estacion"
-4,43,11,$,Caracter invalido
-5,46,7,I,Error en etiqueta "estacion"
-6,124,15,ù,Caracter invalido
-7,132,7,I,Error en etiqueta "estacion"
-8,136,12,@,Caracter invalido
+1,23,1,h,Caracter invalido
+2,23,2,b,Caracter invalido
+3,23,3,t,Caracter invalido
+4,23,4,g,Caracter invalido
+5,24,6,g,Error en etiqueta "estacion"

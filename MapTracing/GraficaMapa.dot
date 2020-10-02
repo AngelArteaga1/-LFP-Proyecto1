@@ -1,0 +1,59 @@
+digraph Grafica{
+node[style=filled]
+estacionzona6[label = "EstacionZona6
+Disponible", fillcolor = "#1A5AAF"]
+estacionzona2[label = "EstacionZona2
+Disponible", fillcolor = "#AF5B1A"]
+estacionzona1[label = "EstacionZona1
+Disponible", fillcolor = "#E52E22"]
+estacionzona4[label = "estacionzona4
+Cerrada", fillcolor = "#AF5B1A"]
+estacionzona5[label = "EstacionZona5
+Disponible", fillcolor = "#208E40"]
+estacionzona6[label = "EstacionZona6
+Disponible", fillcolor = "#1A5AAF"]
+estacionzona2[label = "EstacionZona2
+Disponible", fillcolor = "#AF5B1A"]
+estacionzona1[label = "EstacionZona1
+Disponible", fillcolor = "#E52E22"]
+estacionzona4[label = "estacionzona4
+Cerrada", fillcolor = "#AF5B1A"]
+estacionzona5[label = "EstacionZona5
+Disponible", fillcolor = "#208E40"]
+rankdir="LR";
+labelloc="t";
+label="MapaCentral";
+fontsize=24;
+estacionzona1->estacionzona6[label = "ruta_central
+2.5"]
+estacionzona6->estacionzona2[label = "ruta_central2
+4"]
+estacionzona6->estacionzona1[label = "ruta2
+5"]
+estacionzona2->estacionzona1[label = "rutaexpress
+0.7"]
+estacionzona1->estacionzona5[label = "rutajardines
+2"]
+estacionzona6->estacionzona4[label = "ruta4
+1.2"]
+estacionzona4->estacionzona5[label = "ruta_4_5
+2"]
+estacionzona2->estacionzona5[label = "ruta_2_5
+3"]
+estacionzona1->estacionzona6[label = "ruta_central
+2.5"]
+estacionzona6->estacionzona2[label = "ruta_central2
+4"]
+estacionzona6->estacionzona1[label = "ruta2
+5"]
+estacionzona2->estacionzona1[label = "rutaexpress
+0.7"]
+estacionzona1->estacionzona5[label = "rutajardines
+2"]
+estacionzona6->estacionzona4[label = "ruta4
+1.2"]
+estacionzona4->estacionzona5[label = "ruta_4_5
+2"]
+estacionzona2->estacionzona5[label = "ruta_2_5
+3"]
+}

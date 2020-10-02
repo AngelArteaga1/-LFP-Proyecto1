@@ -1,4 +1,6 @@
 import re
+from Ruta import Ruta
+from Estacion import Estacion
 class Analizador:
 
     def __init__(self, direccion):
@@ -28,7 +30,25 @@ class Analizador:
             for i in lineas:
                 argumento = argumento+i
             AnalisisLexico(lineas)
+    def GetRutas(self):
+        global Rutas
+        return Rutas
     # END
+    def GetEstaciones(self):
+        global Estaciones
+        return Estaciones
+    # END
+    def IsCorrecta(self):
+        global S
+        global Error
+        if S == 0 and Error == False:
+            return True
+        else:
+            return False
+    # END
+    def GetNombreMapa(self):
+        global NombreMapa
+        return NombreMapa
 
 # VARIABLES GLOBALES
 nombre = ''
@@ -36,6 +56,8 @@ peso = ''
 inicio = ''
 fin = ''
 color = ''
+NombreMapa = ''
+estado = True
 NoTabla = 0
 NoError = 1
 NoTablaTK = 0
@@ -53,6 +75,8 @@ ETKid = False
 ETKnum = False
 ETKidcolor = False
 especiales = ["@", "#", "_"]
+Rutas = []
+Estaciones = []
 S = 0 # ESTADOS DE AUTOMATA
 
 
@@ -89,9 +113,49 @@ def GraficarToken(lexema, fila, columna, token):
     # END
 
 def AnalisisLexico(lineas):
-    temporal = ''
+    # Variables
+    global S
+    global Error
+    global ETKruta
+    global ETKnombre
+    global ETKpeso
+    global ETKinicio
+    global ETKfin
+    global ETKestacion
+    global ETKestado
+    global ETKcolor
+    global ETKid
+    global ETKnum
+    global ETKidcolor
+    global nombre
+    global peso
+    global inicio
+    global fin
+    global color
+    global estado
+    global NombreMapa
+    # RESETEAR TODO WACHO
+    Error = False
+    ETKruta = False
+    ETKnombre = False
+    ETKpeso = False
+    ETKinicio = False
+    ETKfin = False
+    ETKestacion = False
+    ETKestado = False
+    ETKcolor = False
+    ETKid = False
+    ETKnum = False
+    ETKidcolor = False
+    NombreMapa = ''
+    nombre = ''
+    peso = ''
+    inicio = ''
+    fin = ''
+    color = ''
+    estado = True
     contador = 0
-    # Quitarle los tabuladores a cada linea
+    # Quitarle los tabuladores y saltos a cada linea
     for i in lineas:
         lineas[contador] = re.sub('[\t]', ' ', lineas[contador])
         lineas[contador] = re.sub('[\n]', '', lineas[contador])
@@ -101,8 +165,14 @@ def AnalisisLexico(lineas):
     for i in lineas:
         AutomataGeneral1(i, contador)
         contador = contador + 1
-    print('Estado: ' + str(S))
-    print('Proceso teminado! oprima cualquier letra para continuar.')
+    if (S == 0 and Error == False):
+        print('Tabla de tokens generada.')
+        print('Proceso teminado! El archivo es perfeto :)')
+    else:
+        print('Tabla de tokens generada.')
+        print('Tabla de errores generada.')
+        print('Proceso teminado! El archivo tiene erorres :(')
+    print('Oprima cualquier letra para continuar.')
     # END
 
 def AutomataGeneral1(linea, fila):
@@ -119,12 +189,16 @@ def AutomataGeneral1(linea, fila):
     global ETKid
     global ETKnum
     global ETKidcolor
-    columna = 1
     global nombre
     global peso
     global inicio
     global fin
     global color
+    global estado
+    global Rutas
+    global Estaciones
+    global NombreMapa
+    columna = 1
 
     for i in linea:
         # ***********************ERRORES**************************
@@ -697,8 +771,10 @@ def AutomataGeneral1(linea, fila):
                 S = 119
             elif i == 'e':
                 S = 120
+                estado = True
                 ETKid = False
             elif i == '<':
+                estado = True
                 ETKid = False
                 GraficarToken(i, fila, columna, 'AbreTK')
                 S = 121
@@ -716,10 +792,12 @@ def AutomataGeneral1(linea, fila):
                 S = 132
             elif i == 'a':
                 S = 134
+                estado = True
             elif i == 'd':
                 S = 135
             elif i == '<':
                 S = 121
+                estado = False
                 ETKid = False
                 GraficarToken(i, fila, columna, 'AbreTK')
             else:
@@ -735,6 +813,7 @@ def AutomataGeneral1(linea, fila):
                 inicio = ''
                 fin = ''
                 color = ''
+                estado = True
                 GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
                 S = 0
@@ -1427,6 +1506,8 @@ def AutomataGeneral1(linea, fila):
         elif S == 75:
             if i == '>':
                 S = 0
+                rutaux = Ruta(nombre, peso, inicio, fin)
+                Rutas.append(rutaux)
                 GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 75
@@ -1827,6 +1908,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 120:
             if i == '<':
                 S = 121
+                estado = True
                 GraficarToken('disponible', fila, columna, 'ID')
                 GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
@@ -1967,6 +2049,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 136:
             if i == '<':
                 S = 121
+                estado = False
                 GraficarToken('cerrada', fila, columna, 'ID')
                 GraficarToken(i, fila, columna, 'AbreTK')
             elif i == ' ':
@@ -2188,6 +2271,8 @@ def AutomataGeneral1(linea, fila):
         elif S == 159:
             if i == '>':
                 S = 0
+                estacionaux = Estacion(nombre, estado, color)
+                Estaciones.append(estacionaux)
                 GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 159
@@ -2337,6 +2422,7 @@ def AutomataGeneral1(linea, fila):
         elif S == 175:
             if i == '>':
                 S = 0
+                NombreMapa = nombre
                 GraficarToken(i, fila, columna, 'CierreTK')
             elif i == ' ':
                 S = 175
