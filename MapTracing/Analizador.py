@@ -134,6 +134,8 @@ def AnalisisLexico(lineas):
     global color
     global estado
     global NombreMapa
+    global Rutas
+    global Estaciones
     # RESETEAR TODO WACHO
     Error = False
     ETKruta = False
@@ -155,6 +157,8 @@ def AnalisisLexico(lineas):
     color = ''
     estado = True
     contador = 0
+    Rutas = []
+    Estaciones = []
     # Quitarle los tabuladores y saltos a cada linea
     for i in lineas:
         lineas[contador] = re.sub('[\t]', ' ', lineas[contador])

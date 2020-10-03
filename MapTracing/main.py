@@ -63,22 +63,12 @@ class Menu:
             if analizador.IsCorrecta():
                 Rutas = analizador.GetRutas()
                 Estaciones = analizador.GetEstaciones()
-                for i in Rutas:
-                    print('**********RUTA**********')
-                    print('Nombre: ' + i.getnombre())
-                    print('Peso: ' + i.getpeso())
-                    print('inicio: ' + i.getinicio())
-                    print('fin: ' + i.getfin())
-                for i in Estaciones:
-                    print('********ESTACION********')
-                    print('Nombre: ' + i.getnombre())
-                    if i.getestado() == True:
-                        print('Estado: disponible')
-                    else:
-                        print('Estado: cerrada')
-                    print('color: ' + i.getcolor())
-                print('Nombre del Mapa: ' + analizador.GetNombreMapa())
-                GraficarRuta()
+                print('Ingrese la estación inicio: ')
+                inicio = input()
+                print('Ingrese la estación final: ')
+                final = input()
+                NombreMapa = analizador.GetNombreMapa()
+                GraficarRuta(inicio, final, Rutas, Estaciones, NombreMapa)
             else:
                 print('Se han encontrado errores en su archivo...')
                 print('Porfavor corrigalos he intente de nuevo')
@@ -125,8 +115,70 @@ class Menu:
         sys.exit(0)
     # END
 
-def GraficarRuta():
-    print('Graficando ruta...')
+RutaTemporal = []
+def EncontrarRuta(Rutas, Estaciones, Inicio, Fin):
+    cerradas = []
+    for i in Estaciones:
+        if i.getestado() == False:
+            cerradas.append(i.getnombre())
+    LE = []
+    LV = []
+    Ordenar = []
+    encontrado = False
+    RutaAuxiliar = None
+    RutaInicial = Ruta('rutainicial', 0, 'cero', Inicio)
+    LE.append(RutaInicial)
+    while (encontrado != True):
+        if len(LE) == 0:
+            print('No se encontró una ruta adecuada')
+            encontrado = True
+        RutaAuxiliar = LE[0]
+        if (RutaAuxiliar.getfin()).lower() == Fin.lower():
+            print('Has encontrado la vaina loca :v')
+            encontrado = True
+        LV.append(RutaAuxiliar)
+        LE.pop(0)
+        for i in Rutas:
+            if (i.getinicio()).lower() == (RutaAuxiliar.getfin()):
+                Ordenar.append(i)
+        for numPasada in range(len(Ordenar) - 1, 0, -1):
+            for i in range(numPasada):
+                numero1 = float(Ordenar[i].getpeso())
+                numero2 = float(Ordenar[i + 1].getpeso())
+                if numero1 > numero2:
+                    temp = Ordenar[i]
+                    Ordenar[i] = Ordenar[i + 1]
+                    Ordenar[i + 1] = temp
+        print('ORDENAR:')
+        for i in Ordenar:
+            if i.getfin() in cerradas:
+                Ordenar.remove(i)
+            print('[')
+            print(i.getnombre())
+            print(']')
+        print('FIN ORDENAR')
+        Ordenar[::-1]
+        for i in Ordenar:
+            LE.insert(0,i)
+    return LV
+    # END
+
+def GraficarRuta(Inicio, Fin, Rutas, Estaciones, NombreMapa):
+    InicioEncontrado = False
+    FinEncontrado = False
+    for i in Estaciones:
+        if (i.getnombre()).lower() == Inicio.lower():
+            InicioEncontrado = True
+        if (i.getnombre()).lower() == Fin.lower():
+            FinEncontrado = True
+    if InicioEncontrado == True and FinEncontrado == True:
+        rutas = EncontrarRuta(Rutas, Estaciones, Inicio, Fin)
+        for i in rutas:
+            print(i.getnombre())
+    elif InicioEncontrado == False:
+        print('La estacion inicial no existe :C')
+    elif FinEncontrado == False:
+        print('La estacion final no esxiste :C')
 # END
 
 def GraficarMapa(Rutas, Estaciones, NombreMapa):
