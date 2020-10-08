@@ -60,18 +60,14 @@ class Menu:
         if analizador == None:
             print('Porfavor ingrese la ruta del archivo primero.')
         else:
-            if analizador.IsCorrecta():
-                Rutas = analizador.GetRutas()
-                Estaciones = analizador.GetEstaciones()
-                print('Ingrese la estación inicio: ')
-                inicio = input()
-                print('Ingrese la estación final: ')
-                final = input()
-                NombreMapa = analizador.GetNombreMapa()
-                GraficarRuta(inicio, final, Rutas, Estaciones, NombreMapa)
-            else:
-                print('Se han encontrado errores en su archivo...')
-                print('Porfavor corrigalos he intente de nuevo')
+            Rutas = analizador.GetRutas()
+            Estaciones = analizador.GetEstaciones()
+            print('Ingrese la estación inicio: ')
+            inicio = input()
+            print('Ingrese la estación final: ')
+            final = input()
+            NombreMapa = analizador.GetNombreMapa()
+            GraficarRuta(inicio, final, Rutas, Estaciones, NombreMapa)
         input()
     # END
 
@@ -80,33 +76,14 @@ class Menu:
         if analizador == None:
             print('Porfavor ingrese la ruta del archivo primero.')
         else:
-            if analizador.IsCorrecta():
-                Rutas = analizador.GetRutas()
-                Estaciones = analizador.GetEstaciones()
-                for i in Rutas:
-                    print('**********RUTA**********')
-                    print('Nombre: ' + i.getnombre())
-                    print('Peso: ' + i.getpeso())
-                    print('inicio: ' + i.getinicio())
-                    print('fin: ' + i.getfin())
-                for i in Estaciones:
-                    print('********ESTACION********')
-                    print('Nombre: ' + i.getnombre())
-                    if i.getestado() == True:
-                        print('Estado: disponible')
-                    else:
-                        print('Estado: cerrada')
-                    print('color: ' + i.getcolor())
-                print('Nombre del Mapa: ' + analizador.GetNombreMapa())
-                NombreMapa = analizador.GetNombreMapa()
-                if NombreMapa != '':
-                    NombreMapa = analizador.GetNombreMapa()
-                else:
-                    NombreMapa = 'Diagrama Del Mapa'
-                GraficarMapa(Rutas, Estaciones, NombreMapa)
-            else:
-                print('Se han encontrado errores en su archivo...')
-                print('Porfavor corrigalos he intente de nuevo')
+            Rutas = analizador.GetRutas()
+            Estaciones = analizador.GetEstaciones()
+            print('Ingrese la estación inicio: ')
+            inicio = input()
+            print('Ingrese la estación final: ')
+            final = input()
+            NombreMapa = analizador.GetNombreMapa()
+            GraficarMapa(inicio, final, Rutas, Estaciones, NombreMapa)
         input()
     # END
 
@@ -115,55 +92,68 @@ class Menu:
         sys.exit(0)
     # END
 
-RutaTemporal = []
+#Variables Globales
+EncontroRuta = True
 def EncontrarRuta(Rutas, Estaciones, Inicio, Fin):
+    global EncontroRuta
     cerradas = []
     for i in Estaciones:
         if i.getestado() == False:
-            cerradas.append(i.getnombre())
+            cerradas.append((i.getnombre()).lower())
     LE = []
     LV = []
     Ordenar = []
     encontrado = False
     RutaAuxiliar = None
+    EstacionesVistas = []
     RutaInicial = Ruta('rutainicial', 0, 'cero', Inicio)
     LE.append(RutaInicial)
+    EstacionesVistas.append(Inicio)
     while (encontrado != True):
+        Ordenar = []
         if len(LE) == 0:
-            print('No se encontró una ruta adecuada')
+            print('No se encontró una ruta adecuada :(')
             encontrado = True
-        RutaAuxiliar = LE[0]
-        if (RutaAuxiliar.getfin()).lower() == Fin.lower():
-            print('Has encontrado la vaina loca :v')
-            encontrado = True
-        LV.append(RutaAuxiliar)
-        LE.pop(0)
-        for i in Rutas:
-            if (i.getinicio()).lower() == (RutaAuxiliar.getfin()):
-                Ordenar.append(i)
-        for numPasada in range(len(Ordenar) - 1, 0, -1):
-            for i in range(numPasada):
-                numero1 = float(Ordenar[i].getpeso())
-                numero2 = float(Ordenar[i + 1].getpeso())
-                if numero1 > numero2:
-                    temp = Ordenar[i]
-                    Ordenar[i] = Ordenar[i + 1]
-                    Ordenar[i + 1] = temp
-        print('ORDENAR:')
-        for i in Ordenar:
-            if i.getfin() in cerradas:
-                Ordenar.remove(i)
-            print('[')
-            print(i.getnombre())
-            print(']')
-        print('FIN ORDENAR')
-        Ordenar[::-1]
-        for i in Ordenar:
-            LE.insert(0,i)
+            EncontroRuta = False
+        if encontrado == False:
+            RutaAuxiliar = LE[0]
+            if (RutaAuxiliar.getfin()).lower() == Fin.lower():
+                encontrado = True
+                EncontroRuta = True
+            LE.pop(0)
+            for i in Rutas:
+                if (i.getinicio()).lower() == (RutaAuxiliar.getfin()).lower():
+                    Ordenar.append(i)
+            if len(Ordenar) !=0:
+                for numPasada in range(len(Ordenar) - 1, 0, -1):
+                    for i in range(numPasada):
+                        numero1 = float(Ordenar[i].getpeso())
+                        numero2 = float(Ordenar[i + 1].getpeso())
+                        if numero1 > numero2:
+                            temp = Ordenar[i]
+                            Ordenar[i] = Ordenar[i + 1]
+                            Ordenar[i + 1] = temp
+            if len(Ordenar) != 0:
+                LV.append(RutaAuxiliar)
+            else:
+                if (RutaAuxiliar.getfin()).lower() == Fin.lower():
+                    LV.append(RutaAuxiliar)
+            for i in Ordenar:
+                if i.getfin() in cerradas:
+                    Ordenar.remove(i)
+            for i in Ordenar:
+                if (i.getfin()).lower() in EstacionesVistas:
+                    Ordenar.remove(i)
+            Ordenar = Ordenar[::-1]
+            for i in Ordenar:
+                LE.insert(0,i)
+            EstacionesVistas.append(RutaAuxiliar.getfin())
     return LV
     # END
 
 def GraficarRuta(Inicio, Fin, Rutas, Estaciones, NombreMapa):
+    if NombreMapa == '':
+        NombreMapa = 'Diagrama de Rutas'
     InicioEncontrado = False
     FinEncontrado = False
     for i in Estaciones:
@@ -172,41 +162,131 @@ def GraficarRuta(Inicio, Fin, Rutas, Estaciones, NombreMapa):
         if (i.getnombre()).lower() == Fin.lower():
             FinEncontrado = True
     if InicioEncontrado == True and FinEncontrado == True:
-        rutas = EncontrarRuta(Rutas, Estaciones, Inicio, Fin)
-        for i in rutas:
-            print(i.getnombre())
+        cerradas = []
+        for i in Estaciones:
+            if i.getestado() == False:
+                cerradas.append((i.getnombre()).lower())
+        if Inicio.lower() in cerradas:
+            print('La estacion de inicio se encuentra cerrada')
+        elif Fin.lower() in cerradas:
+            print('La estacion final se encuentra cerrada')
+        elif Inicio.lower() == Fin.lower():
+            print('La estacion inicio es la misma que la final')
+            file = open('GraficaRuta.dot', 'w', encoding="cp437", errors='ignore')
+            file.write('digraph Grafica{\n')
+            file.write('node[style=filled]\n')
+            for i in Estaciones:
+                if Inicio.lower() == (i.getnombre()).lower():
+                    estacion = i
+            nombre = estacion.getnombre()
+            color = estacion.getcolor()
+            if estacion.getestado() == True:
+                estado = 'Disponible'
+            else:
+                estado = 'Cerrada'
+            file.write(nombre + '[label = "' + str(estacion.getnombre()) + '\n' + estado + '", fillcolor = "' + color + '"]\n')
+            file.write('}')
+            file.close()
+            print('Grafica de rutas generada exitosamente!')
+        else:
+            rutas = EncontrarRuta(Rutas, Estaciones, Inicio, Fin)
+            if len(rutas) != 0:
+                rutas.pop(0)
+            if len(rutas) != 0:
+                NombreEstaciones = []
+                for i in rutas:
+                    NombreEstaciones.append((i.getinicio()).lower())
+                    NombreEstaciones.append((i.getfin()).lower())
+                EstacionesReales = []
+                for i in Estaciones:
+                    if (i.getnombre()).lower() in NombreEstaciones:
+                        EstacionesReales.append(i)
+                file = open('GraficaRuta.dot', 'w', encoding="cp437", errors='ignore')
+                file.write('digraph Grafica{\n')
+                file.write('node[style=filled]\n')
+                for i in EstacionesReales:
+                    nombre = str(i.getnombre())
+                    nombre = nombre.lower()
+                    color = str(i.getcolor())
+                    if i.getestado() == True:
+                        Estado = 'Disponible'
+                    else:
+                        Estado = 'Cerrada'
+                    file.write(nombre + '[label = "' + str(i.getnombre()) + '\n' + Estado + '", fillcolor = "' + color + '"]\n')
+                file.write('rankdir="LR";\nlabelloc="t";\nlabel="' + NombreMapa + '";\nfontsize=24;\n')
+                for i in rutas:
+                    inicio = str(i.getinicio())
+                    inicio = inicio.lower()
+                    fin = str(i.getfin())
+                    fin = fin.lower()
+                    nombre = str(i.getnombre())
+                    nombre = nombre.lower()
+                    peso = str(i.getpeso())
+                    file.write(inicio + '->' + fin + '[style = "bold", color = "#5D25FF", label = "' + nombre + '\n' + peso + '"]\n')
+                file.write('}')
+                file.close()
+                print('Grafica de rutas generada exitosamente!')
     elif InicioEncontrado == False:
         print('La estacion inicial no existe :C')
     elif FinEncontrado == False:
-        print('La estacion final no esxiste :C')
+        print('La estacion final no existe :C')
 # END
 
-def GraficarMapa(Rutas, Estaciones, NombreMapa):
-    file = open('GraficaMapa.dot', 'w')
-    file.write('digraph Grafica{\n')
-    file.write('node[style=filled]\n')
+def GraficarMapa(Inicio, Fin, Rutas, Estaciones, NombreMapa):
+    if NombreMapa == '':
+        NombreMapa = 'Diagrama del Mapa'
+    InicioEncontrado = False
+    FinEncontrado = False
     for i in Estaciones:
-        nombre = str(i.getnombre())
-        nombre = nombre.lower()
-        color = str(i.getcolor())
-        if i.getestado() == True:
-            Estado = 'Disponible'
+        if (i.getnombre()).lower() == Inicio.lower():
+            InicioEncontrado = True
+        if (i.getnombre()).lower() == Fin.lower():
+            FinEncontrado = True
+    if InicioEncontrado == True and FinEncontrado == True:
+        cerradas = []
+        for i in Estaciones:
+            if i.getestado() == False:
+                cerradas.append((i.getnombre()).lower())
+        if Inicio.lower() in cerradas:
+            print('La estacion de inicio se encuentra cerrada')
+        elif Fin.lower() in cerradas:
+            print('La estacion final se encuentra cerrada')
         else:
-            Estado = 'Cerrada'
-        file.write(nombre + '[label = "'+ str(i.getnombre()) + '\n' + Estado + '", fillcolor = "'+ color + '"]\n')
-    file.write('rankdir="LR";\nlabelloc="t";\nlabel="'+ NombreMapa +'";\nfontsize=24;\n')
-    for i in Rutas:
-        inicio = str(i.getinicio())
-        inicio = inicio.lower()
-        fin = str(i.getfin())
-        fin = fin.lower()
-        nombre = str(i.getnombre())
-        nombre = nombre.lower()
-        peso = str(i.getpeso())
-        file.write(inicio + '->' + fin + '[label = "' + nombre + '\n' + peso + '"]\n')
-    file.write('}')
-    file.close()
-    print('Graficando mapa...')
+            rutas = EncontrarRuta(Rutas, Estaciones, Inicio, Fin)
+            if len(rutas) != 0:
+                rutas.pop(0)
+            file = open('GraficaMapa.dot', 'w', encoding="cp437", errors='ignore')
+            file.write('digraph Grafica{\n')
+            file.write('node[style=filled]\n')
+            for i in Estaciones:
+                nombre = str(i.getnombre())
+                nombre = nombre.lower()
+                color = str(i.getcolor())
+                if i.getestado() == True:
+                    Estado = 'Disponible'
+                else:
+                    Estado = 'Cerrada'
+                file.write(nombre + '[label = "'+ str(i.getnombre()) + '\n' + Estado + '", fillcolor = "'+ color + '"]\n')
+            file.write('rankdir="LR";\nlabelloc="t";\nlabel="'+ NombreMapa +'";\nfontsize=24;\n')
+            for i in Rutas:
+                inicio = str(i.getinicio())
+                inicio = inicio.lower()
+                fin = str(i.getfin())
+                fin = fin.lower()
+                nombre = str(i.getnombre())
+                nombre = nombre.lower()
+                peso = str(i.getpeso())
+                if i in rutas:
+                    file.write(inicio + '->' + fin + '[style = "bold", color = "#5D25FF", label = "' + nombre + '\n' + peso + '"]\n')
+                else:
+                    file.write(inicio + '->' + fin + '[label = "' + nombre + '\n' + peso + '"]\n')
+            file.write('}')
+            file.close()
+            print('Grafica del mapa generada exitosamente!')
+    elif InicioEncontrado == False:
+        print('La estacion inicial no existe :C')
+    elif FinEncontrado == False:
+        print('La estacion final no existe :C')
 # END
 
 '''******************************MAIN**********************************'''
